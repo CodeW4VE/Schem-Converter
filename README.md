@@ -1,10 +1,28 @@
-# Litematic NBT Version Converter Bot
+<div align="center">
 
-A Discord bot that converts `.litematic` files between different NBT versions (4, 5, 6, and 7).
+# Schem-Converter
+
+**Convert `.litematic` files between NBT versions directly in Discord with a simple slash command.**
+
+[![Discord.js](https://img.shields.io/badge/Discord.js-v14-5865F2?logo=discord&logoColor=white)](https://discord.js.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![prismarine-nbt](https://img.shields.io/badge/NBT-Parsing-blue)](https://github.com/PrismarineJS/prismarine-nbt)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+<img width="480" height="270" alt="Schem-Converter" src="https://github.com/user-attachments/assets/dc1b6511-4c97-46d8-a9b9-757930fda7da" />
+
+</div>
+
+---
+
+## What is it?
+
+A Discord bot that takes a `.litematic` schematic file and converts its internal NBT version (4 → 5 → 6 → 7) and all the tag formats that go with it.  
+Perfect when you need to open a modern schematic in an older version of Litematica, or vice‑versa.
 
 ## Features
 
-- Accepts `.litematic` files via Discord's `/convert` command.
+- Accepts `.litematic` files via Discord's `/schem-convert` command.
 - Detects the current NBT version of the file.
 - Provides a dropdown menu to select the target NBT version:
   - **NBT 7** (1.20.5 – 1.21+)
@@ -60,3 +78,7 @@ All messages are ephemeral (visible only to you).
 [discord.js](https://discord.js.org/) versions 14.14.1. 
 [prismarine-nbt](https://github.com/PrismarineJS/prismarine-nbt) versions 2.5.0. 
 [dotenv](https://www.npmjs.com/package/dotenv) versions 16.3.1.
+
+## License
+
+[MIT](LICENSE) © froyln / CodeW4VE.
