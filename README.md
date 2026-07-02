@@ -66,7 +66,7 @@ Run the deployment script once (or whenever you modify the command):
 ## Usage
 1. In any text channel, use the slash command:
    ```bash
-   /convert
+   /schem-convert
    ```
 2. Attach a .litematic file when prompted.
 3. The bot will reply with a dropdown menu showing the current NBT version.
