@@ -75,8 +75,11 @@ Run the deployment script once (or whenever you modify the command):
 All messages are ephemeral (visible only to you).
 
 ## Dependencies
+
 [discord.js](https://discord.js.org/) versions 14.14.1. 
+
 [prismarine-nbt](https://github.com/PrismarineJS/prismarine-nbt) versions 2.5.0. 
+
 [dotenv](https://www.npmjs.com/package/dotenv) versions 16.3.1.
 
 ## License
