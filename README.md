@@ -80,8 +80,6 @@ All messages are ephemeral (visible only to you).
 
 [prismarine-nbt](https://github.com/PrismarineJS/prismarine-nbt) versions 2.5.0. 
 
-[dotenv](https://www.npmjs.com/package/dotenv) versions 16.3.1.
-
 ## License
 
 [MIT](LICENSE) © froyln / CodeW4VE.
