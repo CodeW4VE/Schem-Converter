@@ -210,7 +210,6 @@ function applyConversion(root, fromVersion, toVersion) {
 function upgradeToV7(obj) {
   renameCountToLowercase(obj);
   convertSignTagsToV7(obj);
-  convertRedstoneWireTags(obj);
   addFluidTicks(obj);
 }
 
@@ -280,20 +279,6 @@ function convertSignTagsToV7(obj) {
       convertSignTagsToV7(obj[key]);
     }
   }
-}
-
-function convertRedstoneWireTags(obj) {
-  if (!obj || typeof obj !== 'object') return;
-  if (obj.Name?.value === 'minecraft:redstone_wire' && obj.Properties) {
-    const props = obj.Properties.value;
-    ['north', 'south', 'east', 'west'].forEach(dir => {
-      if (props[dir]) {
-        if (props[dir].value === 'none') props[dir].value = 'none';
-        else if (props[dir].value === 'side') props[dir].value = 'side';
-      }
-    });
-  }
-  for (const key in obj) convertRedstoneWireTags(obj[key]);
 }
 
 function addFluidTicks(obj) {
