@@ -89,3 +89,5 @@ loses/mixes state.
 - `data/vendor/block_state_map.json` is LGPL-3.0, not MIT. Don't modify it in place — if it
   needs a fix, add the fix as a fallback in `lib/flattening.js` instead, so the vendored file
   stays an unmodified, separately-licensed unit.
+- No unneeded comments. Only comment non-obvious WHY (hidden constraint, workaround, surprising
+  behavior) — never restate WHAT code does. Costs tokens for no reader value.
