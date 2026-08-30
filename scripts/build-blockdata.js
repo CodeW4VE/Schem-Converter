@@ -9,7 +9,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { SUPPORTED } = require('../lib/versions');
+const { SUPPORTED, PRE_FLATTENING_MC_VERSION } = require('../lib/versions');
 
 // Pinned so regeneration is reproducible. Bump deliberately.
 const REF = 'fc3f7093feb8a691d8271db4c81a48d16061301e';
@@ -61,9 +61,10 @@ async function main() {
     const entry = protocolVersions.find(v => v.minecraftVersion === mcVersion);
     if (!entry) throw new Error(`no protocolVersions entry for ${mcVersion}`);
 
-    const [rawBlocks, rawEntities] = await Promise.all([
+    const [rawBlocks, rawEntities, rawItems] = await Promise.all([
       getJson(`${BASE}/${paths.blocks}/blocks.json`),
       getJson(`${BASE}/${paths.entities}/entities.json`),
+      getJson(`${BASE}/${paths.items}/items.json`),
     ]);
 
     const blocks = {};
@@ -82,17 +83,52 @@ async function main() {
       mcVersion,
       dataVersion: entry.dataVersion,
       blocks,
-      // Kept flat: entity ids are only ever membership-tested.
+      // Kept flat: entity/item ids are only ever membership-tested (B1's
+      // findSubstitute resolver generalizes to items the same way - see
+      // AGENTS.md / PLAN.md).
       entities: rawEntities.map(e => e.name).sort(),
+      items: rawItems.map(i => i.name).sort(),
     };
 
     const file = path.join(OUT_DIR, `blocks-${mcVersion}.json`);
     fs.writeFileSync(file, JSON.stringify(out));
     const kb = Math.round(fs.statSync(file).size / 1024);
     console.log(
-      `${mcVersion}: ${Object.keys(blocks).length} blocks, ${out.entities.length} entities, ${kb} KB`
+      `${mcVersion}: ${Object.keys(blocks).length} blocks, ${out.entities.length} entities, ${out.items.length} items, ${kb} KB`
     );
   }
+
+  // 1.12.2 has no blocks-1.12.2.json (see lib/versions.js - its block model
+  // doesn't fit the {properties, defaults} shape). Items have no such
+  // complexity (flat id list, no per-instance state), so a minimal
+  // items-1.12.2.json is worth generating on its own for B1/B4's item
+  // resolver to membership-test against. `id` is kept (not just the name)
+  // because lib/legacy-items.js needs id -> name to invert legacy.json's
+  // id:meta -> modern-name table (see PLAN.md "B4").
+  const pre = dataPaths[PRE_FLATTENING_MC_VERSION];
+  if (!pre) throw new Error(`minecraft-data has no entry for ${PRE_FLATTENING_MC_VERSION}`);
+  const [preItems, preEnchantments] = await Promise.all([
+    getJson(`${BASE}/${pre.items}/items.json`),
+    getJson(`${BASE}/${pre.enchantments}/enchantments.json`),
+  ]);
+  const preFile = path.join(OUT_DIR, `items-${PRE_FLATTENING_MC_VERSION}.json`);
+  fs.writeFileSync(
+    preFile,
+    JSON.stringify({
+      items: preItems.map(i => ({ id: i.id, name: i.name })).sort((a, b) => a.id - b.id),
+      // ench:[{id,lvl}] uses these same numeric ids pre-1.13 (see PLAN.md "B4").
+      enchantments: preEnchantments.map(e => ({ id: e.id, name: e.name })).sort((a, b) => a.id - b.id),
+    })
+  );
+  console.log(`${PRE_FLATTENING_MC_VERSION}: ${preItems.length} items, ${preEnchantments.length} enchantments`);
+
+  // pc/common/legacy.json's `items` table: "id:meta" -> the modern flat item
+  // name, 644 entries, Apache/CC-licensed (unlike data/vendor/block_state_map.json,
+  // this carries no LGPL question - see PLAN.md "B4"). lib/legacy-items.js
+  // inverts it the same way lib/flattening.js inverts the block map.
+  const legacy = await getJson(`${BASE}/pc/common/legacy.json`);
+  fs.writeFileSync(path.join(OUT_DIR, 'legacy-items.json'), JSON.stringify(legacy.items));
+  console.log(`legacy-items.json: ${Object.keys(legacy.items).length} entries`);
 }
 
 main().catch(err => {
