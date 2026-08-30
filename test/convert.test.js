@@ -102,7 +102,10 @@ test('sign tags convert front_text/back_text -> Text1-4 when downgrading past 1.
                       value: {
                         has_glowing_text: { type: 'byte', value: 1 },
                         color: { type: 'string', value: 'red' },
-                        messages: { type: 'list', value: { type: 'string', value: ['hi', '', '', ''] } },
+                        messages: {
+                          type: 'list',
+                          value: { type: 'string', value: ['{"text":"hi"}', '', '', ''] },
+                        },
                       },
                     },
                   },
@@ -118,8 +121,264 @@ test('sign tags convert front_text/back_text -> Text1-4 when downgrading past 1.
   convertSchematic(root, 4189, '1.13.2'); // 1.13.2 dataVersion is well below the 3463 threshold
 
   const sign = root.Regions.value.Main.value.TileEntities.value.value[0];
-  assert.equal(sign.Text1.value, 'hi');
+  assert.equal(sign.Text1.value, '{"text":"hi"}');
   assert.equal(sign.front_text, undefined);
+});
+
+test('BUG REPORT: sign text is not empty after downgrading a 1.21.5+ (NBT component) sign', () => {
+  const root = buildRoot({
+    Regions: {
+      type: 'compound',
+      value: {
+        Main: {
+          type: 'compound',
+          value: {
+            BlockStatePalette: { type: 'list', value: { type: 'compound', value: [] } },
+            TileEntities: {
+              type: 'list',
+              value: {
+                type: 'compound',
+                value: [
+                  {
+                    id: { type: 'string', value: 'minecraft:sign' },
+                    front_text: {
+                      type: 'compound',
+                      value: {
+                        has_glowing_text: { type: 'byte', value: 0 },
+                        color: { type: 'string', value: 'black' },
+                        // 1.21.5+ shape: messages are real NBT strings, not JSON.
+                        messages: { type: 'list', value: { type: 'string', value: ['Hello', 'world', '', ''] } },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  convertSchematic(root, 4440, '1.12.2'); // 1.21.8 -> 1.12.2
+
+  const sign = root.Regions.value.Main.value.TileEntities.value.value[0];
+  assert.equal(sign.Text1.value, '"Hello"');
+  assert.equal(sign.Text2.value, '"world"');
+  assert.equal(sign.id.value, 'minecraft:sign'); // A4: id survives, not hanging_sign
+});
+
+test('sign conversion is a no-op when source and target agree on encoding+shape', () => {
+  const root = buildRoot({
+    Regions: {
+      type: 'compound',
+      value: {
+        Main: {
+          type: 'compound',
+          value: {
+            BlockStatePalette: { type: 'list', value: { type: 'compound', value: [] } },
+            TileEntities: {
+              type: 'list',
+              value: {
+                type: 'compound',
+                value: [{ id: { type: 'string', value: 'minecraft:sign' }, Text1: { type: 'string', value: '{"text":"kept"}' } }],
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  convertSchematic(root, 1631, '1.14.4'); // both json-text1-4 side
+
+  const sign = root.Regions.value.Main.value.TileEntities.value.value[0];
+  assert.equal(sign.Text1.value, '{"text":"kept"}');
+});
+
+test('A2: text survives a downgrade that stays on the front_text/back_text shape (1.21.8 -> 1.20.4)', () => {
+  const root = buildRoot({
+    Regions: {
+      type: 'compound',
+      value: {
+        Main: {
+          type: 'compound',
+          value: {
+            BlockStatePalette: { type: 'list', value: { type: 'compound', value: [] } },
+            TileEntities: {
+              type: 'list',
+              value: {
+                type: 'compound',
+                value: [
+                  {
+                    id: { type: 'string', value: 'minecraft:sign' },
+                    front_text: {
+                      type: 'compound',
+                      value: {
+                        has_glowing_text: { type: 'byte', value: 0 },
+                        color: { type: 'string', value: 'black' },
+                        messages: { type: 'list', value: { type: 'string', value: ['Hello', '', '', ''] } },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  convertSchematic(root, 4440, '1.20.4'); // this path used to be a total no-op (bug A2)
+
+  const sign = root.Regions.value.Main.value.TileEntities.value.value[0];
+  assert.equal(sign.front_text.value.messages.value.type, 'string');
+  assert.equal(sign.front_text.value.messages.value.value[0], '"Hello"');
+});
+
+test('a coloured/bold sign round-trips its formatting into an NBT component and back', () => {
+  const root = buildRoot({
+    Regions: {
+      type: 'compound',
+      value: {
+        Main: {
+          type: 'compound',
+          value: {
+            BlockStatePalette: { type: 'list', value: { type: 'compound', value: [] } },
+            TileEntities: {
+              type: 'list',
+              value: {
+                type: 'compound',
+                value: [
+                  {
+                    id: { type: 'string', value: 'minecraft:sign' },
+                    front_text: {
+                      type: 'compound',
+                      value: {
+                        has_glowing_text: { type: 'byte', value: 0 },
+                        color: { type: 'string', value: 'black' },
+                        messages: {
+                          type: 'list',
+                          value: { type: 'string', value: ['{"text":"Hi","color":"red","bold":true}', '', '', ''] },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  convertSchematic(root, 4189, '1.21.8'); // upgrade past the 4325 encoding boundary
+
+  const up = root.Regions.value.Main.value.TileEntities.value.value[0];
+  const upMessages = up.front_text.value.messages.value;
+  assert.equal(upMessages.type, 'compound');
+  assert.equal(upMessages.value[0].color.value, 'red');
+  assert.equal(upMessages.value[0].bold.value, 1);
+
+  convertSchematic(root, 4440, '1.20.1'); // and back down, staying on the front_text shape
+
+  const down = root.Regions.value.Main.value.TileEntities.value.value[0];
+  const downMessages = down.front_text.value.messages.value.value;
+  const decoded = JSON.parse(downMessages[0]);
+  assert.equal(decoded.color, 'red');
+  assert.equal(decoded.bold, true);
+});
+
+test('A4: a hanging sign keeps its tile entity on a pre-1.20 target, id remapped to sign', () => {
+  const root = buildRoot({
+    Regions: {
+      type: 'compound',
+      value: {
+        Main: {
+          type: 'compound',
+          value: {
+            BlockStatePalette: {
+              type: 'list',
+              value: { type: 'compound', value: [{ Name: { type: 'string', value: 'minecraft:oak_hanging_sign' } }] },
+            },
+            TileEntities: {
+              type: 'list',
+              value: {
+                type: 'compound',
+                value: [
+                  {
+                    id: { type: 'string', value: 'minecraft:hanging_sign' },
+                    front_text: {
+                      type: 'compound',
+                      value: {
+                        has_glowing_text: { type: 'byte', value: 0 },
+                        color: { type: 'string', value: 'black' },
+                        messages: { type: 'list', value: { type: 'string', value: ['Hi', '', '', ''] } },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  convertSchematic(root, 4440, '1.16.5');
+
+  const sign = root.Regions.value.Main.value.TileEntities.value.value[0];
+  assert.equal(sign.id.value, 'minecraft:sign');
+  assert.equal(sign.Text1.value, '"Hi"');
+});
+
+test('A5: a dropped back side is named in the report', () => {
+  const root = buildRoot({
+    Regions: {
+      type: 'compound',
+      value: {
+        Main: {
+          type: 'compound',
+          value: {
+            BlockStatePalette: { type: 'list', value: { type: 'compound', value: [] } },
+            TileEntities: {
+              type: 'list',
+              value: {
+                type: 'compound',
+                value: [
+                  {
+                    id: { type: 'string', value: 'minecraft:sign' },
+                    front_text: {
+                      type: 'compound',
+                      value: {
+                        has_glowing_text: { type: 'byte', value: 0 },
+                        color: { type: 'string', value: 'black' },
+                        messages: { type: 'list', value: { type: 'string', value: ['Hi', '', '', ''] } },
+                      },
+                    },
+                    back_text: {
+                      type: 'compound',
+                      value: {
+                        has_glowing_text: { type: 'byte', value: 0 },
+                        color: { type: 'string', value: 'black' },
+                        messages: { type: 'list', value: { type: 'string', value: ['Back side', '', '', ''] } },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const report = convertSchematic(root, 4189, '1.13.2');
+  assert.ok(report.toLines().some(line => line.includes('back text dropped')));
 });
 
 test('count tags convert count -> Count when downgrading past 1.20.5', () => {
@@ -142,7 +401,7 @@ test('count tags convert count -> Count when downgrading past 1.20.5', () => {
                       type: 'list',
                       value: {
                         type: 'compound',
-                        value: [{ count: { type: 'int', value: 5 } }],
+                        value: [{ id: { type: 'string', value: 'minecraft:stone' }, count: { type: 'int', value: 5 } }],
                       },
                     },
                   },
