@@ -17,18 +17,21 @@
 
 ## What is it?
 
-A Discord bot that takes a `.litematic` schematic file and converts its internal NBT version (4 → 5 → 6 → 7) and all the tag formats that go with it.  
+A Discord bot that takes a `.litematic` schematic file and converts it to a different Minecraft
+version — including rewriting the block palette, so blocks the target version doesn't have get
+substituted with something sensible instead of silently disappearing.  
 Perfect when you need to open a modern schematic in an older version of Litematica, or vice‑versa.
 
 ## Features
 
 - Accepts `.litematic` files via Discord's `/schem-convert` command.
-- Detects the current NBT version of the file.
-- Provides a dropdown menu to select the target NBT version:
-  - **NBT 7** (1.20.5 – 1.21+)
-  - **NBT 6** (1.17 – 1.20.4)
-  - **NBT 5** (1.13 – 1.16.5)
-  - **NBT 4** (Legacy, pre-1.13)
+- Detects the schematic's current source version.
+- Provides a dropdown menu to select the target **Minecraft version** (1.12.2 through 1.21.8) —
+  not just an NBT version, which is too coarse to know which blocks actually exist.
+- Rewrites the block palette: blocks missing from the target are substituted (same material
+  family and shape where possible) instead of vanishing, and every substitution is reported back.
+- Converting to 1.12.2 additionally translates the modern per-name block IDs back to the
+  pre-Flattening `id:meta` blockstate model.
 - Returns the converted `.litematic` file directly in the ephemeral reply.
 
 ## Requirements
@@ -83,3 +86,8 @@ All messages are ephemeral (visible only to you).
 ## License
 
 [MIT](LICENSE) © froyln / CodeW4VE.
+
+`data/vendor/block_state_map.json` is vendored unmodified from the
+[Litematica](https://github.com/maruohon/litematica) mod and is licensed separately under
+LGPL-3.0 — see `data/vendor/NOTICE.md` and `data/vendor/LICENSE.txt`. It is not covered by this
+project's MIT license.
