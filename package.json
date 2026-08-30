@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node --env-file=.env index.js",
-    "deploy": "node --env-file=.env deploy_commands.js"
+    "deploy": "node --env-file=.env deploy_commands.js",
+    "build-data": "node scripts/build-blockdata.js",
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "discord.js": "^14.26.4",
