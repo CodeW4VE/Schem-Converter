@@ -143,3 +143,37 @@ test('oak_hanging_sign falls past the missing oak_sign to sign on 1.13.2', () =>
 test('a genuinely new block with no equivalent still hits the command_block marker', () => {
   assert.equal(findSubstitute('vault', to1_13.blocks), 'command_block');
 });
+
+test('BUG REPORT: blocks with no obvious equivalent hit the marker instead of a misleading lookalike', () => {
+  // Reported: composter->crafting_table, honey_block->slime_block, and
+  // ancient_debris->netherrack all preserve nothing (not shape, not
+  // material, not function) - a schematic reader has no way to guess the
+  // original block back out. Removed from data/substitutions.json; the
+  // marker is the honest answer per the user's own stated principle -
+  // "if is not a obvious conversion... just set command block".
+  for (const name of [
+    'composter',
+    'honey_block',
+    'ancient_debris',
+    'bell',
+    'target',
+    'lodestone',
+    'loom',
+    'cartography_table',
+    'fletching_table',
+    'smithing_table',
+    'stonecutter',
+    'grindstone',
+    'lectern',
+    'scaffolding',
+    'sculk',
+    'bee_nest',
+    'beehive',
+  ]) {
+    assert.equal(findSubstitute(name, to1_13.blocks), 'command_block', `${name} should hit the marker`);
+  }
+});
+
+test('raw_copper_block matches the rest of the copper family (orange_terracotta), not iron_block', () => {
+  assert.equal(findSubstitute('raw_copper_block', to1_13.blocks), 'orange_terracotta');
+});

@@ -38,6 +38,16 @@ test('cave_air and pumpkin use the explicit fallback table', () => {
   assert.equal(pumpkin.properties.facing, 'north');
 });
 
+test('BUG REPORT: a bubble column becomes a water source, not a command block', () => {
+  const withDrag = flattenState({ name: 'minecraft:bubble_column', properties: { drag: 'true' } });
+  assert.equal(withDrag.name, 'minecraft:flowing_water');
+  assert.equal(withDrag.properties.level, '0');
+
+  const withoutDrag = flattenState({ name: 'minecraft:bubble_column', properties: { drag: 'false' } });
+  assert.equal(withoutDrag.name, 'minecraft:flowing_water');
+  assert.equal(withoutDrag.properties.level, '0');
+});
+
 test('note_block collapses to noteblock (pitch requires per-position TileEntities work, out of scope)', () => {
   const result = flattenState({ name: 'minecraft:note_block', properties: { instrument: 'harp', note: '13', powered: 'false' } });
   assert.equal(result.name, 'minecraft:noteblock');
