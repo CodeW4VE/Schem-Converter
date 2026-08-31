@@ -127,15 +127,22 @@ module.exports = {
         });
 
         const files = [newAttachment];
-        const lines = report.toLines();
+        const blockLines = report.blockLines();
+        const itemLines = report.itemLines();
+        const noteLines = report.noteLines();
+        const lines = blockLines.concat(itemLines).concat(noteLines);
         let content = `**${filename}** converted to **${targetMcVersion}**.`;
 
         if (lines.length > 0) {
-          const summary = `\n\nBlock substitutions:\n${lines.join('\n')}`;
+          const sections = [];
+          if (blockLines.length > 0) sections.push(`**Block substitutions:**\n${blockLines.join('\n')}`);
+          if (itemLines.length > 0) sections.push(`**Item substitutions:**\n${itemLines.join('\n')}`);
+          if (noteLines.length > 0) sections.push(`**Notes:**\n${noteLines.join('\n')}`);
+          const summary = `\n\n${sections.join('\n\n')}`;
           if ((content + summary).length <= 2000) {
             content += summary;
           } else {
-            content += `\n\n${lines.length} block substitutions were made (see attached file).`;
+            content += `\n\n${blockLines.length} block and ${itemLines.length} item substitutions were made (see attached file).`;
             files.push(new AttachmentBuilder(Buffer.from(lines.join('\n')), { name: 'substitutions.txt' }));
           }
         }
