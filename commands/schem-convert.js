@@ -9,7 +9,9 @@ const { SUPPORTED, PRE_FLATTENING_MC_VERSION, inspectFile, convertFile } = requi
 
 const conversionCache = new Map();
 
-// Discord allows at most 25 options in a select menu; this is 14.
+// Discord allows at most 25 options in a select menu; this list comes from the
+// library's SUPPORTED table plus 1.12.2, so it grows every time that library adds
+// a version - watch the count if it ever approaches 25.
 const versionMenuOptions = [...Object.keys(SUPPORTED), PRE_FLATTENING_MC_VERSION].map(mcVersion => ({
   label: mcVersion,
   value: mcVersion,
