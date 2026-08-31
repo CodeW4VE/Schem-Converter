@@ -155,6 +155,9 @@
     "quartz_bricks": [
       "quartz_block"
     ],
+    "smooth_quartz": [
+      "quartz_block"
+    ],
     "chiseled_nether_bricks": [
       "nether_bricks"
     ],
@@ -576,6 +579,10 @@
     [
       "pale_oak_",
       "oak_"
+    ],
+    [
+      "smooth_quartz_",
+      "quartz_"
     ],
     [
       "cherry_",
