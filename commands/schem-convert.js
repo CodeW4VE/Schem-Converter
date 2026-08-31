@@ -5,10 +5,7 @@ const {
   AttachmentBuilder,
   MessageFlags,
 } = require('discord.js');
-const nbt = require('prismarine-nbt');
-const zlib = require('zlib');
-const { SUPPORTED, PRE_FLATTENING_MC_VERSION, describeSource } = require('../lib/versions');
-const { convertSchematic } = require('../lib/convert');
+const { SUPPORTED, PRE_FLATTENING_MC_VERSION, inspectFile, convertFile } = require('@froyln/schem-convert-lib');
 
 const conversionCache = new Map();
 
@@ -59,19 +56,11 @@ module.exports = {
       const arrayBuffer = await response.arrayBuffer();
       const inputBuffer = Buffer.from(arrayBuffer);
 
-      const inflatedBuffer = zlib.gunzipSync(inputBuffer);
-      const data = await nbt.parse(inflatedBuffer);
-      const root = data.parsed.value;
-
-      const nbtVersion = root.Version ? root.Version.value : 0;
-      const dataVersion = root.MinecraftDataVersion ? root.MinecraftDataVersion.value : 0;
+      const { label: sourceLabel } = await inspectFile(inputBuffer);
       const originalFilename = attachment.name;
-      const sourceLabel = describeSource(nbtVersion, dataVersion);
 
       conversionCache.set(interaction.user.id, {
-        data,
-        root,
-        dataVersion,
+        inputBuffer,
         originalFilename,
       });
 
@@ -106,11 +95,11 @@ module.exports = {
           });
         }
 
-        const { data: cachedData, root: cachedRoot, dataVersion: fromDataVersion, originalFilename: filename } = cache;
+        const { inputBuffer: cachedBuffer, originalFilename: filename } = cache;
 
-        let report;
+        let buffer, report;
         try {
-          report = convertSchematic(cachedRoot, fromDataVersion, targetMcVersion);
+          ({ buffer, report } = await convertFile(cachedBuffer, targetMcVersion));
         } catch (err) {
           console.error(err);
           return selectInteraction.editReply({
@@ -119,10 +108,7 @@ module.exports = {
           });
         }
 
-        const outputUncompressed = nbt.writeUncompressed(cachedData.parsed);
-        const outputCompressed = zlib.gzipSync(outputUncompressed);
-
-        const newAttachment = new AttachmentBuilder(Buffer.from(outputCompressed), {
+        const newAttachment = new AttachmentBuilder(buffer, {
           name: filename,
         });
 

@@ -6,7 +6,6 @@
 
 [![Discord.js](https://img.shields.io/badge/Discord.js-v14-5865F2?logo=discord&logoColor=white)](https://discord.js.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![prismarine-nbt](https://img.shields.io/badge/NBT-Parsing-blue)](https://github.com/PrismarineJS/prismarine-nbt)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 <img width="480" height="270" alt="Schem-Converter" src="https://github.com/user-attachments/assets/dc1b6511-4c97-46d8-a9b9-757930fda7da" />
@@ -79,15 +78,12 @@ All messages are ephemeral (visible only to you).
 
 ## Dependencies
 
-[discord.js](https://discord.js.org/) versions 14.14.1. 
+[discord.js](https://discord.js.org/) v14.
 
-[prismarine-nbt](https://github.com/PrismarineJS/prismarine-nbt) versions 2.5.0. 
+[@froyln/schem-convert-lib](https://github.com/froyln/schem-convert-lib) — the conversion
+engine (block/item palette rewriting, sign text, NBT plumbing). See that repo for supported
+versions and conversion details.
 
 ## License
 
 [MIT](LICENSE) © froyln / CodeW4VE.
-
-`data/vendor/block_state_map.json` is vendored unmodified from the
-[Litematica](https://github.com/maruohon/litematica) mod and is licensed separately under
-LGPL-3.0 — see `data/vendor/NOTICE.md` and `data/vendor/LICENSE.txt`. It is not covered by this
-project's MIT license.
